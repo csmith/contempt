@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.9.0
+
+- Add support for retrieving releases of postgres 16/17 (thanks @greboid)
+
 # 1.8.1
 
 - If a scanner error occurs while reading the Alpine APK index, it is now
