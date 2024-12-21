@@ -1,3 +1,0 @@
-#C: from example.com/image as build
-FROM example.com/image AS build
-# Some other line
