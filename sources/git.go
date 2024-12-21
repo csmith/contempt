@@ -1,22 +1,83 @@
 package sources
 
 import (
+	"context"
 	"fmt"
-	"github.com/csmith/gitrefs"
+	"github.com/csmith/latest"
+	"strings"
+	"text/template"
 )
 
-// LatestGitHubTag uses the GitHub API to find the tag for the latest stable release.
-func LatestGitHubTag(repo string, prefix string) (string, error) {
-	return LatestGitTag(fmt.Sprintf("https://github.com/%s", repo), prefix)
-}
+func GitFuncs(bom *map[string]string) template.FuncMap {
+	return template.FuncMap{
+		"git_tag": func(repo string) (string, error) {
+			tag, err := latest.GitTag(
+				context.Background(),
+				repo,
+				&latest.TagOptions{
+					IgnoreDates:      true,
+					IgnoreErrors:     true,
+					IgnorePreRelease: true,
+				},
+			)
+			if err != nil {
+				return "", err
+			}
+			(*bom)[fmt.Sprintf("git:%s", repo)] = tag
+			return tag, nil
+		},
 
-// LatestGitTag queries a remote git repository to find the latest semver tag, optionally stripping the given prefix
-// from tags before processing.
-func LatestGitTag(repo string, prefix string) (string, error) {
-	tag, _, err := gitrefs.LatestTagIgnoringPrefix(repo, prefix)
-	if err != nil {
-		return "", err
+		"prefixed_git_tag": func(repo, prefix string) (string, error) {
+			tag, err := latest.GitTag(
+				context.Background(),
+				repo,
+				&latest.TagOptions{
+					IgnoreDates:      true,
+					IgnoreErrors:     true,
+					IgnorePreRelease: true,
+					TrimPrefixes:     []string{prefix},
+				},
+			)
+			if err != nil {
+				return "", err
+			}
+			(*bom)[fmt.Sprintf("git:%s", repo)] = strings.TrimPrefix(tag, prefix)
+			return tag, nil
+		},
+
+		"github_tag": func(repo string) (string, error) {
+			tag, err := latest.GitTag(
+				context.Background(),
+				fmt.Sprintf("https://github.com/%s", repo),
+				&latest.TagOptions{
+					IgnoreDates:      true,
+					IgnoreErrors:     true,
+					IgnorePreRelease: true,
+				},
+			)
+			if err != nil {
+				return "", err
+			}
+			(*bom)[fmt.Sprintf("github:%s", repo)] = tag
+			return tag, nil
+		},
+
+		"prefixed_github_tag": func(repo, prefix string) (string, error) {
+			tag, err := latest.GitTag(
+				context.Background(),
+				fmt.Sprintf("https://github.com/%s", repo),
+				&latest.TagOptions{
+					IgnoreDates:      true,
+					IgnoreErrors:     true,
+					IgnorePreRelease: true,
+					TrimPrefixes:     []string{prefix},
+				},
+			)
+			if err != nil {
+				return "", err
+			}
+			(*bom)[fmt.Sprintf("github:%s", repo)] = strings.TrimPrefix(tag, prefix)
+			return tag, nil
+		},
 	}
-
-	return tag, nil
 }

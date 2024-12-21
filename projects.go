@@ -74,27 +74,29 @@ func FindProjects(dir, templateName string) ([]string, error) {
 func dependencies(dir, templateName string) []string {
 	var res []string
 	fakeFunks := template.FuncMap{}
-	for f := range templateFuncs {
-		out := reflect.ValueOf(templateFuncs[f]).Type().Out(0).Kind()
-		if f == "image" {
-			fakeFunks[f] = func(dep string) string {
-				// Ignore fully-qualified images like "docker.io/library/alpine"
-				if index := strings.IndexByte(dep, '.'); index == -1 || index > strings.IndexByte(dep, '/') {
-					res = append(res, dep)
+	for i := range templateFuncs {
+		for f := range templateFuncs[i] {
+			out := reflect.ValueOf(templateFuncs[i][f]).Type().Out(0).Kind()
+			if f == "image" {
+				fakeFunks[f] = func(dep string) string {
+					// Ignore fully-qualified images like "docker.io/library/alpine"
+					if index := strings.IndexByte(dep, '.'); index == -1 || index > strings.IndexByte(dep, '/') {
+						res = append(res, dep)
+					}
+					return ""
 				}
-				return ""
-			}
-		} else if out == reflect.Map {
-			fakeFunks[f] = func(args ...string) map[string]string {
-				return nil
-			}
-		} else if out == reflect.Slice {
-			fakeFunks[f] = func(args ...string) []string {
-				return nil
-			}
-		} else {
-			fakeFunks[f] = func(args ...string) string {
-				return ""
+			} else if out == reflect.Map {
+				fakeFunks[f] = func(args ...string) map[string]string {
+					return nil
+				}
+			} else if out == reflect.Slice {
+				fakeFunks[f] = func(args ...string) []string {
+					return nil
+				}
+			} else {
+				fakeFunks[f] = func(args ...string) string {
+					return ""
+				}
 			}
 		}
 	}

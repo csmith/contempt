@@ -1,46 +1,43 @@
 package sources
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"strings"
+	"text/template"
 
-	"github.com/google/go-containerregistry/pkg/authn"
-	"github.com/google/go-containerregistry/pkg/crane"
+	"github.com/csmith/latest"
 )
 
 var (
-	registry     = flag.String("registry", "reg.c5h.io", "Registry to use for pushes and pulls")
 	registryUser = flag.String("registry-user", "", "Username to use when querying the container registry")
 	registryPass = flag.String("registry-pass", "", "Password to use when querying the container registry")
 )
 
-// LatestDigest finds the latest digest for the given image reference.
-// If either the username or password is blank, falls back to using the default docker keychain.
-func LatestDigest(ref string) (string, string, error) {
-	var authOpt crane.Option
+func ImageFuncs(bom *map[string]string, registry string) template.FuncMap {
+	return template.FuncMap{
+		"registry": func() string { return registry },
+		"image": func(ref string) (string, error) {
+			digest, err := latest.ImageDigest(context.Background(), ref, &latest.ImageOptions{
+				Registry: registry,
+				Username: *registryUser,
+				Password: *registryPass,
+			})
 
-	if *registryUser == "" || *registryPass == "" {
-		authOpt = crane.WithAuthFromKeychain(authn.DefaultKeychain)
-	} else {
-		authOpt = crane.WithAuth(&authn.Basic{
-			Username: *registryUser,
-			Password: *registryPass,
-		})
+			if err != nil {
+				return "", err
+			}
+
+			var image string
+			if index := strings.IndexByte(ref, '.'); index != -1 && index < strings.IndexByte(ref, '/') {
+				image = ref
+			} else {
+				image = fmt.Sprintf("%s/%s", registry, ref)
+			}
+
+			(*bom)[fmt.Sprintf("image:%s", ref)] = strings.TrimPrefix(digest, "sha256:")
+			return fmt.Sprintf("%s@%s", image, digest), nil
+		},
 	}
-
-	// If the ref is fully-qualified (i.e., "example.com/image") then don't prepend the registry.
-	var image string
-	if index := strings.IndexByte(ref, '.'); index != -1 && index < strings.IndexByte(ref, '/') {
-		image = ref
-	} else {
-		image = fmt.Sprintf("%s/%s", *registry, ref)
-	}
-
-	digest, err := crane.Digest(image, authOpt)
-	return image, digest, err
-}
-
-func Registry() string {
-	return *registry
 }

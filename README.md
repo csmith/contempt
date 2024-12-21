@@ -141,17 +141,31 @@ Returns the URL and checksum for the latest release of Golang.
 ### Postgres release
 
 ```gotemplate
+# Deprecated - use {{postgres_url 13}} and {{postgres_checksum 13}}
 {{postgres13_url}}
 {{postgres13_checksum}}
 
+# Deprecated - use {{postgres_url 14}} and {{postgres_checksum 14}}
 {{postgres14_url}}
 {{postgres14_checksum}}
 
+# Deprecated - use {{postgres_url 15}} and {{postgres_checksum 15}}
 {{postgres15_url}}
 {{postgres15_checksum}}
+
+# Deprecated - use {{postgres_url 16}} and {{postgres_checksum 16}}
+{{postgres16_url}}
+{{postgres16_checksum}}
+
+# Deprecated - use {{postgres_url 17}} and {{postgres_checksum 17}}
+{{postgres17_url}}
+{{postgres17_checksum}}
+
+{{postgres_url 17}}
+{{postgres_checksum 17}}
 ```
 
-Returns the URL and checksum for the latest release of Postgres 13, 14 or 15.
+Returns the URL and checksum for the latest release of a specific major version of Postgres.
 
 ### Alpine packages
 

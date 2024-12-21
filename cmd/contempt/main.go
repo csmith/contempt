@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/csmith/contempt"
-	"github.com/csmith/contempt/sources"
 	"github.com/csmith/envflag"
 	"golang.org/x/exp/slices"
 )
@@ -27,6 +26,8 @@ var (
 	push             = flag.Bool("push", false, "Whether to automatically push on successful commit")
 	pushRetries      = flag.Int("push-retries", 2, "How many times to retry pushing an image if it fails")
 	workflowCommands = flag.Bool("workflow-commands", true, "Whether to output GitHub Actions workflow commands to format logs")
+	registry         = flag.String("registry", "reg.c5h.io", "Registry to use for pushes and pulls")
+	alpineMirror     = flag.String("alpine-mirror", "https://dl-cdn.alpinelinux.org/alpine/", "Base URL of the Alpine mirror to use to query version and package info")
 )
 
 func main() {
@@ -50,6 +51,8 @@ func main() {
 
 	checkExternalDependencies()
 
+	contempt.InitTemplates(*registry, *alpineMirror)
+
 	filtered := strings.Split(*filter, ",")
 
 	for i := range projects {
@@ -72,7 +75,7 @@ func main() {
 			}
 
 			if (*commit && *build) || *forceBuild {
-				imageName := fmt.Sprintf("%s/%s", sources.Registry(), projects[i])
+				imageName := fmt.Sprintf("%s/%s", *registry, projects[i])
 				if err := runBuildahCommand(
 					"bud",
 					"--timestamp",

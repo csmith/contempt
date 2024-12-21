@@ -1,5 +1,11 @@
 # Unreleased
 
+- Refactor templating to use the [latest](https://github.com/csmith/latest) library
+  instead of Contempt knowing how to check the latest version of everything
+- Added generic `{{postgres_url <version>}}` and `{{postgres_checksum <version>}}`
+  functions. The older version specific functions are deprecated, but will
+  not be removed in the near future.
+
 # 1.9.0
 
 - Add support for retrieving releases of postgres 16/17 (thanks @greboid)
