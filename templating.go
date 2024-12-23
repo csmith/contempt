@@ -4,65 +4,43 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/csmith/contempt/pkg/materials"
+	"github.com/csmith/contempt/pkg/template"
+	"github.com/csmith/contempt/pkg/template/sources"
+	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
-	"text/template"
-
-	"github.com/csmith/contempt/sources"
 )
 
-var templateFuncs []template.FuncMap
+var engine *template.Engine
 
-// TODO: This is all a bit gross. Templating should be a separate package,
-// and the BOM should be passed in to it rather than relying on random global state.
-
-func InitTemplates(imageRegistry, alpineMirror string) {
-	templateFuncs = append(
-		templateFuncs, template.FuncMap{
-			"regex_url_content": regexURLContent,
-			"increment_int": func(x int) int {
-				return x + 1
-			},
-		},
-		sources.ImageFuncs(&materials, imageRegistry),
-		sources.GitFuncs(&materials),
-		sources.AlpineReleaseFuncs(&materials, alpineMirror),
-		sources.GoReleaseFuncs(&materials),
-		sources.PostgresReleaseFuncs(&materials),
-		sources.AlpinePackagesFuncs(&materials, alpineMirror),
+func InitTemplates(imageRegistry, alpineMirror string, includes fs.FS) {
+	engine = template.NewEngine(
+		slog.New(slog.NewTextHandler(os.Stdout, nil)),
+		includes,
 	)
+
+	engine.Register(sources.AlpinePackagesSource(alpineMirror))
+	engine.Register(sources.ImageSource(imageRegistry))
+	engine.Register(sources.GitSource())
+	engine.Register(sources.HttpSource())
+	engine.Register(sources.AlpineReleaseSource(alpineMirror))
+	engine.Register(sources.GoReleaseSource())
+	engine.Register(sources.UtilSource())
 }
 
-func regexURLContent(name, url, regex string) string {
-	res, err := sources.RegexURLContent(url, regex)
-	if err != nil {
-		log.Fatalf("Couldn't find regex in url '%s'", name)
-	}
-	materials[fmt.Sprintf("regexurl:%s", name)] = res
-	return res
-}
-
-func Generate(sourceLink, inBase, inRelativePath, outFile string) ([]Change, error) {
-	materials = make(map[string]string)
-	oldMaterials := readBillOfMaterials(outFile)
+func Generate(sourceLink, inBase, inRelativePath, outFile string) ([]materials.Change, error) {
+	oldMaterials := materials.Read(outFile)
 	inFile := filepath.Join(inBase, inRelativePath)
 
-	tpl := template.New(inFile)
-	for i := range templateFuncs {
-		tpl.Funcs(templateFuncs[i])
-	}
-
-	if _, err := tpl.ParseFiles(inFile); err != nil {
-		return nil, fmt.Errorf("unable to parse template file %s: %v", inFile, err)
-	}
-
 	writer := &bytes.Buffer{}
-	if err := tpl.ExecuteTemplate(writer, filepath.Base(inFile), nil); err != nil {
+	newMaterials, err := engine.Execute(writer, inFile)
+	if err != nil {
 		return nil, fmt.Errorf("unable to render template file %s: %v", outFile, err)
 	}
 
-	bom, _ := json.Marshal(materials)
+	bom, _ := json.Marshal(newMaterials)
 	header := fmt.Sprintf("# Generated from %s%s\n# BOM: %s\n\n", sourceLink, inRelativePath, bom)
 
 	content := append([]byte(header), writer.Bytes()...)
@@ -70,5 +48,5 @@ func Generate(sourceLink, inBase, inRelativePath, outFile string) ([]Change, err
 		return nil, fmt.Errorf("unable to write container file to %s: %v", outFile, err)
 	}
 
-	return diffMaterials(oldMaterials, materials), nil
+	return materials.Diff(oldMaterials, newMaterials), nil
 }

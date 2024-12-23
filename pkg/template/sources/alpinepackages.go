@@ -3,23 +3,26 @@ package sources
 import (
 	"context"
 	"fmt"
+	"github.com/csmith/contempt/pkg/template"
 	"github.com/csmith/latest"
 	"strings"
-	"text/template"
+	tt "text/template"
 )
 
-func AlpinePackagesFuncs(bom *map[string]string, mirror string) template.FuncMap {
-	return template.FuncMap{
-		"alpine_packages": func(packages ...string) (map[string]string, error) {
-			res, err := latestAlpinePackages(mirror, packages...)
-			if err != nil {
-				return nil, err
-			}
-			for i := range res {
-				(*bom)[fmt.Sprintf("apk:%s", i)] = res[i]
-			}
-			return res, nil
-		},
+func AlpinePackagesSource(mirror string) template.FunctionSource {
+	return func(writer template.BomWriter) tt.FuncMap {
+		return tt.FuncMap{
+			"alpine_packages": func(packages ...string) (map[string]string, error) {
+				res, err := latestAlpinePackages(mirror, packages...)
+				if err != nil {
+					return nil, err
+				}
+				for i := range res {
+					writer.Write(fmt.Sprintf("apk:%s", i), res[i])
+				}
+				return res, nil
+			},
+		}
 	}
 }
 

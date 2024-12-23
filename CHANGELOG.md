@@ -1,10 +1,15 @@
 # Unreleased
 
+# 1.10.0
+
 - Refactor templating to use the [latest](https://github.com/csmith/latest) library
   instead of Contempt knowing how to check the latest version of everything
 - Added generic `{{postgres_url <version>}}` and `{{postgres_checksum <version>}}`
   functions. The older version specific functions are deprecated, but will
   not be removed in the near future.
+- Support for including other templates. The option "includes" specifies a
+  directory containing templates (default: `_includes`) which can then be
+  called using Go's standard `{{template "name.gotpl"}}` convention.
 
 # 1.9.0
 

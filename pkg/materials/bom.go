@@ -1,4 +1,4 @@
-package contempt
+package materials
 
 import (
 	"encoding/json"
@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-var materials map[string]string
+type BOM = map[string]string
 
-func readBillOfMaterials(target string) map[string]string {
+func Read(target string) BOM {
 	res := make(map[string]string)
 	bs, err := os.ReadFile(target)
 	if err != nil {
@@ -37,7 +37,7 @@ type Change struct {
 	New      string
 }
 
-func diffMaterials(oldBom, newBom map[string]string) []Change {
+func Diff(oldBom, newBom BOM) []Change {
 	var res []Change
 	for i := range newBom {
 		if oldBom[i] != newBom[i] {

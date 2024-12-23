@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/csmith/contempt/pkg/materials"
 	"log"
 	"os"
 	"os/exec"
@@ -28,6 +29,7 @@ var (
 	workflowCommands = flag.Bool("workflow-commands", true, "Whether to output GitHub Actions workflow commands to format logs")
 	registry         = flag.String("registry", "reg.c5h.io", "Registry to use for pushes and pulls")
 	alpineMirror     = flag.String("alpine-mirror", "https://dl-cdn.alpinelinux.org/alpine/", "Base URL of the Alpine mirror to use to query version and package info")
+	includesDir      = flag.String("includes", "_includes", "Folder of template files to include")
 )
 
 func main() {
@@ -38,6 +40,8 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
+
+	contempt.InitTemplates(*registry, *alpineMirror, os.DirFS(*includesDir))
 
 	projectDir, err := filepath.Abs(flag.Arg(0))
 	if err != nil {
@@ -50,8 +54,6 @@ func main() {
 	}
 
 	checkExternalDependencies()
-
-	contempt.InitTemplates(*registry, *alpineMirror)
 
 	filtered := strings.Split(*filter, ",")
 
@@ -109,7 +111,7 @@ func main() {
 	}
 }
 
-func doCommit(project string, changes []contempt.Change) error {
+func doCommit(project string, changes []materials.Change) error {
 	if err := runGitCommand(
 		"-C",
 		flag.Arg(1),
@@ -168,7 +170,7 @@ func checkExternalDependencies() {
 	}
 }
 
-func formatChanges(changes []contempt.Change) string {
+func formatChanges(changes []materials.Change) string {
 	if len(changes) == 0 {
 		return "no detected changes"
 	}

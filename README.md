@@ -65,6 +65,8 @@ Usage of contempt:
     [COMMIT] Whether to automatically git commit each changed file
 -force-build
     [FORCE_BUILD] Whether to build projects regardless of changes
+-includes string
+    [INCLUDES] Folder of template files to include (default "_includes")
 -output string
     [OUTPUT] The name of the output files (default "Dockerfile")
 -project string
