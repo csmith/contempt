@@ -27,6 +27,7 @@ func InitTemplates(imageRegistry, alpineMirror string, includes fs.FS) {
 	engine.Register(sources.HttpSource())
 	engine.Register(sources.AlpineReleaseSource(alpineMirror))
 	engine.Register(sources.GoReleaseSource())
+	engine.Register(sources.PostgresReleaseSource())
 	engine.Register(sources.UtilSource())
 }
 
