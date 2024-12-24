@@ -219,6 +219,23 @@ The first argument is a friendly name used for logging and BOM tracking.
 
 Returns the given integer incremented by one.
 
+### Create map
+
+```gotemplate
+{{map "key1" 1 "key2" .SomeData}}
+```
+
+Creates a map. Argument list must be even, and all keys must be strings.
+Useful for passing data to other templates.
+
+### Create array
+
+```gotemplate
+{{arr "elem1" "elem2" .SomeData}}
+```
+
+Creates an array (slice). Useful for passing data to other templates.
+
 ## Dealing with registry credentials
 
 There are two cases in which contempt requires credentials: checking the latest digest for an image in a non-public

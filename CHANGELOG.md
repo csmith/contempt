@@ -2,6 +2,7 @@
 
 - Fixed issue resolving dependencies if functions were passed non-string
   arguments, or returned ints.
+- Add `{{map}}` and `{{arr}}` utility template functions.
 
 # 1.10.0
 
