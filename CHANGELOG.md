@@ -1,5 +1,8 @@
 # Unreleased
 
+- Fixed issue resolving dependencies if functions were passed non-string
+  arguments, or returned ints.
+
 # 1.10.0
 
 - Refactor templating to use the [latest](https://github.com/csmith/latest) library

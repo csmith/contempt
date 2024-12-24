@@ -1,6 +1,7 @@
 package template
 
 import (
+	"fmt"
 	"github.com/csmith/contempt/pkg/materials"
 	"io"
 	"io/fs"
@@ -46,29 +47,36 @@ func (e *Engine) Register(source FunctionSource) {
 
 // DryRun parses and executes the template at the given path, but wraps all
 // registered functions with no-ops that simply record their arguments.
-func (e *Engine) DryRun(path string) (map[string][][]string, error) {
+func (e *Engine) DryRun(path string) (map[string][][]interface{}, error) {
 	e.logger.Debug("dry run of template", "path", path)
 	tpl := template.New(filepath.Base(path))
 	dryFuncs := template.FuncMap{}
-	calls := make(map[string][][]string)
+	calls := make(map[string][][]interface{})
 
 	for f := range e.functions {
 		out := reflect.ValueOf(e.functions[f]).Type().Out(0).Kind()
 		if out == reflect.String {
-			dryFuncs[f] = func(args ...string) string {
+			dryFuncs[f] = func(args ...interface{}) string {
 				calls[f] = append(calls[f], args)
 				return ""
 			}
 		} else if out == reflect.Slice {
-			dryFuncs[f] = func(args ...string) []string {
+			dryFuncs[f] = func(args ...interface{}) []string {
 				calls[f] = append(calls[f], args)
 				return nil
 			}
 		} else if out == reflect.Map {
-			dryFuncs[f] = func(args ...string) map[string]string {
+			dryFuncs[f] = func(args ...interface{}) map[string]string {
 				calls[f] = append(calls[f], args)
 				return nil
 			}
+		} else if out == reflect.Int {
+			dryFuncs[f] = func(args ...interface{}) int {
+				calls[f] = append(calls[f], args)
+				return 0
+			}
+		} else {
+			return nil, fmt.Errorf("template function %s has unsupported return type: %v", f, out)
 		}
 	}
 

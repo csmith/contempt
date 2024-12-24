@@ -78,11 +78,11 @@ func dependencies(dir, templateName string) []string {
 
 	var res []string
 	for i := range calls["image"] {
-		dep := calls["image"][i][0]
+		dep := calls["image"][i][0].(string)
 		if index := strings.IndexByte(dep, '.'); index == -1 || index > strings.IndexByte(dep, '/') {
 			res = append(res, dep)
 		}
 	}
-	
+
 	return res
 }
