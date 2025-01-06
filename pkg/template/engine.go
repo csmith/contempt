@@ -86,14 +86,14 @@ func (e *Engine) DryRun(path string) (map[string][][]interface{}, error) {
 	if _, err := tpl.ParseFS(e.includes, "*.gotpl"); err != nil {
 		if !strings.Contains(err.Error(), "pattern matches no files") {
 			// Urgh.
-			e.logger.Error("failed to parse included templates", "err", err)
+			e.logger.Error("failed to parse included templates", "err", err, "dry-run", true)
 			return nil, err
 		}
 	}
 
 	// Parse the actual template
 	if _, err := tpl.ParseFiles(path); err != nil {
-		e.logger.Error("failed to parse template", "path", path, "err", err)
+		e.logger.Error("failed to parse template", "path", path, "err", err, "dry-run", true)
 		return nil, err
 	}
 
@@ -101,7 +101,7 @@ func (e *Engine) DryRun(path string) (map[string][][]interface{}, error) {
 	e.bom = make(materials.BOM)
 	err := tpl.ExecuteTemplate(io.Discard, filepath.Base(path), nil)
 	if err != nil {
-		e.logger.Error("failed to execute template", "path", path, "err", err)
+		e.logger.Error("failed to execute template", "path", path, "err", err, "dry-run", true)
 		return nil, err
 	}
 
