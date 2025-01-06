@@ -164,8 +164,14 @@ func orderDependencies(deps []target) ([]target, error) {
 			return nil, fmt.Errorf("could not find any satisfied dependencies - is there a loop? Pending: %#v, selected: %#v", deps, ordered)
 		}
 
-		slices.SortFunc(batch, func(i, j target) bool {
-			return i.Name < j.Name
+		slices.SortFunc(batch, func(i, j target) int {
+			if i.Name < j.Name {
+				return 1
+			} else if i.Name > j.Name {
+				return -1
+			} else {
+				return 0
+			}
 		})
 		ordered = append(ordered, batch...)
 	}
