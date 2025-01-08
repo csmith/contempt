@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.11.1
+
+- Fix compiler error in orchestrator (thanks @greboid)
+
 # 1.11.0
 
 - Fixed issue resolving dependencies if functions were passed non-string
