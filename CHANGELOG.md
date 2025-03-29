@@ -1,5 +1,10 @@
 # Unreleased
 
+# 1.11.2
+
+- Update liquid library to allow better whitespace handling in
+  orchestrator
+
 # 1.11.1
 
 - Fix compiler error in orchestrator (thanks @greboid)
