@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.11.3
+
+- Orchestrator will now ignore duplicate dependencies
+
 # 1.11.2
 
 - Update liquid library to allow better whitespace handling in

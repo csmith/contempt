@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/csmith/contempt/internal"
 	"github.com/csmith/envflag"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"gopkg.in/osteele/liquid.v1"
 	"io/fs"
@@ -105,7 +106,7 @@ func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
 	// Ignore dependencies on yourself
 	ownName := path.Base(path.Dir(p))
 
-	var dependencies []string
+	var dependencies map[string]bool
 	repo := fmt.Sprintf("%s/", strings.ToLower(registry))
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -116,7 +117,7 @@ func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
 			name, _, _ = strings.Cut(name, "@")
 			name, _, _ = strings.Cut(name, ":")
 			if name != ownName {
-				dependencies = append(dependencies, name)
+				dependencies[name] = true
 			}
 		}
 	}
@@ -125,7 +126,7 @@ func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
 		return nil, err
 	}
 
-	return dependencies, nil
+	return maps.Keys(dependencies), nil
 }
 
 // TODO: There's probably a better way to do this (e.g. by traversing the graph). Do that and test.
