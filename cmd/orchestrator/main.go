@@ -106,7 +106,7 @@ func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
 	// Ignore dependencies on yourself
 	ownName := path.Base(path.Dir(p))
 
-	var dependencies map[string]bool
+	dependencies := make(map[string]bool)
 	repo := fmt.Sprintf("%s/", strings.ToLower(registry))
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {

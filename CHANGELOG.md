@@ -1,5 +1,9 @@
 # Unreleased
 
+# 1.11.4
+
+- Fix crash in orchestrator due to uninitialised map
+
 # 1.11.3
 
 - Orchestrator will now ignore duplicate dependencies
