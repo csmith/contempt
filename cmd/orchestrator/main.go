@@ -126,7 +126,9 @@ func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
 		return nil, err
 	}
 
-	return maps.Keys(dependencies), nil
+	deps := maps.Keys(dependencies)
+	slices.Sort(deps)
+	return deps, nil
 }
 
 // TODO: There's probably a better way to do this (e.g. by traversing the graph). Do that and test.

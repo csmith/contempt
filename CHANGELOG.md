@@ -1,5 +1,10 @@
 # Unreleased
 
+# 1.11.5
+
+- Dependencies listed by the orchestrator are now listed alphabetically instead
+  of non-deterministically
+
 # 1.11.4
 
 - Fix crash in orchestrator due to uninitialised map
