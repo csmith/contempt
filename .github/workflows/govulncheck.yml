@@ -1,0 +1,8 @@
+name: check for go vulnerabilities
+on:
+  schedule:
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+jobs:
+  build:
+    uses: csmith/github-workflows/.github/workflows/go-vulncheck.yml@master
