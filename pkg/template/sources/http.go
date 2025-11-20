@@ -3,11 +3,12 @@ package sources
 import (
 	"errors"
 	"fmt"
-	"github.com/csmith/contempt/pkg/template"
 	"io"
 	"net/http"
 	"regexp"
 	tt "text/template"
+
+	"github.com/csmith/contempt/pkg/template"
 )
 
 func HttpSource() template.FunctionSource {
@@ -30,7 +31,7 @@ func regexURLContent(url string, regex string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	res, err := http.Get(url)
 	if err != nil {
 		return "", err

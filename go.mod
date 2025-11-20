@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/csmith/envflag v1.0.0
-	github.com/csmith/latest v1.3.1
+	github.com/csmith/latest/v2 v2.0.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	gopkg.in/osteele/liquid.v1 v1.2.4
@@ -12,11 +12,11 @@ require (
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
-	github.com/PuerkitoBio/goquery v1.10.3 // indirect
+	github.com/PuerkitoBio/goquery v1.11.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.18.0 // indirect
 	github.com/csmith/apkutils/v2 v2.1.1 // indirect
-	github.com/csmith/gitrefs v1.4.1 // indirect
+	github.com/csmith/gitrefs v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v28.5.1+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
@@ -33,9 +33,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/vbatts/tar-split v0.12.2 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

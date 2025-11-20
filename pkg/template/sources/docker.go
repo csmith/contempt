@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/csmith/contempt/pkg/template"
 	"strings"
 	tt "text/template"
 
-	"github.com/csmith/latest"
+	"github.com/csmith/contempt/pkg/template"
+	"github.com/csmith/latest/v2"
 )
 
 var (

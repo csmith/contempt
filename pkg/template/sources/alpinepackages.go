@@ -3,10 +3,11 @@ package sources
 import (
 	"context"
 	"fmt"
-	"github.com/csmith/contempt/pkg/template"
-	"github.com/csmith/latest"
 	"strings"
 	tt "text/template"
+
+	"github.com/csmith/contempt/pkg/template"
+	"github.com/csmith/latest/v2"
 )
 
 func AlpinePackagesSource(mirror string) template.FunctionSource {

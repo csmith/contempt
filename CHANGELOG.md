@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.13.0 - 2025-11-20
+
+- Add ability to pass username/password when checking for the latest git tags
+
 ## 1.12.0 - 2025-10-30
 
 - Dependency updates

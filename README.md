@@ -65,12 +65,16 @@ Usage of contempt:
     [COMMIT] Whether to automatically git commit each changed file
 -force-build
     [FORCE_BUILD] Whether to build projects regardless of changes
+-git-tag-pass string
+    [GIT_TAG_PASS] Password to use when querying git tags
+-git-tag-user string
+    [GIT_TAG_USER] Username to use when querying git tags
 -includes string
     [INCLUDES] Folder of template files to include (default "_includes")
 -output string
     [OUTPUT] The name of the output files (default "Dockerfile")
 -project string
-    [PROJECT] The name of a single project to generate, instead of all detected ones
+    [PROJECT] A comma-separated list of projects to generate, instead of all detected ones
 -push
     [PUSH] Whether to automatically push on successful commit
 -push-retries int
@@ -191,6 +195,8 @@ list of all packages pinned to their current versions.
 Returns the latest semver tag of the given repository. The "prefixed" variant will discard
 the given prefix from tag names before comparing them using semver.
 
+Use the `-git-tag-user` and `-git-tag-pass` flags if authentication is required.
+
 ### Git tag
 
 ```gotemplate
@@ -200,6 +206,8 @@ the given prefix from tag names before comparing them using semver.
 
 Returns the latest semver tag of the given repository. The "prefixed" variant will discard
 the given prefix from tag names before comparing them using semver.
+
+Use the `-git-tag-user` and `-git-tag-pass` flags if authentication is required.
 
 ### Regex URL content
 

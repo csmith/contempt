@@ -2,8 +2,9 @@ package sources
 
 import (
 	"errors"
-	"github.com/csmith/contempt/pkg/template"
 	tt "text/template"
+
+	"github.com/csmith/contempt/pkg/template"
 )
 
 func UtilSource() template.FunctionSource {

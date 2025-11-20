@@ -2,11 +2,18 @@ package sources
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"github.com/csmith/contempt/pkg/template"
-	"github.com/csmith/latest"
 	"strings"
 	tt "text/template"
+
+	"github.com/csmith/contempt/pkg/template"
+	"github.com/csmith/latest/v2"
+)
+
+var (
+	gitTagUser = flag.String("git-tag-user", "", "Username to use when querying git tags")
+	gitTagPass = flag.String("git-tag-pass", "", "Password to use when querying git tags")
 )
 
 func GitSource() template.FunctionSource {
@@ -16,10 +23,14 @@ func GitSource() template.FunctionSource {
 				tag, err := latest.GitTag(
 					context.Background(),
 					repo,
-					&latest.TagOptions{
-						IgnoreDates:      true,
-						IgnoreErrors:     true,
-						IgnorePreRelease: true,
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: true,
+						},
 					},
 				)
 				if err != nil {
@@ -33,11 +44,15 @@ func GitSource() template.FunctionSource {
 				tag, err := latest.GitTag(
 					context.Background(),
 					repo,
-					&latest.TagOptions{
-						IgnoreDates:      true,
-						IgnoreErrors:     true,
-						IgnorePreRelease: true,
-						TrimPrefixes:     []string{prefix},
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: true,
+							TrimPrefixes:     []string{prefix},
+						},
 					},
 				)
 				if err != nil {
@@ -51,10 +66,14 @@ func GitSource() template.FunctionSource {
 				tag, err := latest.GitTag(
 					context.Background(),
 					fmt.Sprintf("https://github.com/%s", repo),
-					&latest.TagOptions{
-						IgnoreDates:      true,
-						IgnoreErrors:     true,
-						IgnorePreRelease: true,
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: true,
+						},
 					},
 				)
 				if err != nil {
@@ -68,11 +87,15 @@ func GitSource() template.FunctionSource {
 				tag, err := latest.GitTag(
 					context.Background(),
 					fmt.Sprintf("https://github.com/%s", repo),
-					&latest.TagOptions{
-						IgnoreDates:      true,
-						IgnoreErrors:     true,
-						IgnorePreRelease: true,
-						TrimPrefixes:     []string{prefix},
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: true,
+							TrimPrefixes:     []string{prefix},
+						},
 					},
 				)
 				if err != nil {

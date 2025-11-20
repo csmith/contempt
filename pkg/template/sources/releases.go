@@ -3,10 +3,11 @@ package sources
 import (
 	"context"
 	"fmt"
-	"github.com/csmith/contempt/pkg/template"
-	"github.com/csmith/latest"
 	"sync"
 	tt "text/template"
+
+	"github.com/csmith/contempt/pkg/template"
+	"github.com/csmith/latest/v2"
 )
 
 func AlpineReleaseSource(mirror string) template.FunctionSource {
@@ -121,7 +122,7 @@ func postgresSpecificReleaseFuncs(writer template.BomWriter, majorVersion int) t
 			writer.Write(fmt.Sprintf("postgres%d", majorVersion), version)
 			return url, nil
 		},
-		
+
 		fmt.Sprintf("postgres%d_checksum", majorVersion): func() (string, error) {
 			if err := check(); err != nil {
 				return "", err
