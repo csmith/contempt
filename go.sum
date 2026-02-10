@@ -8,8 +8,8 @@ github.com/containerd/stargz-snapshotter/estargz v0.18.0 h1:Ny5yptQgEXSkDFKvlKJG
 github.com/containerd/stargz-snapshotter/estargz v0.18.0/go.mod h1:7hfU1BO2KB3axZl0dRQCdnHrIWw7TRDdK6L44Rdeuo0=
 github.com/csmith/apkutils/v2 v2.1.1 h1:vmHEaFGL3mLvuC4KDcCZpMaZ7lW9ICdjqACn5VIS70U=
 github.com/csmith/apkutils/v2 v2.1.1/go.mod h1:zyWzK5NXJN67xgp/8rrMXbXDrEVo3rVocLc2/kvDaQg=
-github.com/csmith/envflag v1.0.0 h1:ARMp9RyT/+1eMevJrB0cQeHxBlGpnoLSjuPdGVINzIA=
-github.com/csmith/envflag v1.0.0/go.mod h1:cE/k+xEpKPaIvo7Tz3RubNpWXRRf/WcI+bvPopn4VE0=
+github.com/csmith/envflag/v2 v2.0.0 h1:jho28W/psEqJ02EdbUHmkmFpbc5HFhog6NzHRbgtIFg=
+github.com/csmith/envflag/v2 v2.0.0/go.mod h1:GNzzXvZ2bC3z6tdoO45mTrs7l4Uht2WfBKaF1KQu0Pk=
 github.com/csmith/gitrefs v1.6.0 h1:9hs1De28Ehfo6udB/j4aoP1BFF+f6/vh3miL+RBjFp8=
 github.com/csmith/gitrefs v1.6.0/go.mod h1:RMHCRRgdnUY8sVho+qlGD7uIOpiV1YeE7yGn7cLn7DI=
 github.com/csmith/latest/v2 v2.0.1 h1:L5AIYh+7Fn0Um+guqMDHp3vhKrsI9wp9tEpocpuQZIc=

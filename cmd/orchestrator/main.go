@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/csmith/contempt/internal"
-	"github.com/csmith/envflag"
+	"github.com/csmith/envflag/v2"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"gopkg.in/osteele/liquid.v1"
