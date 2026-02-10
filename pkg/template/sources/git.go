@@ -20,7 +20,7 @@ func GitSource() template.FunctionSource {
 	return func(writer template.BomWriter) tt.FuncMap {
 		return tt.FuncMap{
 			"git_tag": func(repo string) (string, error) {
-				tag, err := latest.GitTag(
+				tag, _, err := latest.GitTag(
 					context.Background(),
 					repo,
 					&latest.GitTagOptions{
@@ -41,7 +41,7 @@ func GitSource() template.FunctionSource {
 			},
 
 			"prefixed_git_tag": func(repo, prefix string) (string, error) {
-				tag, err := latest.GitTag(
+				tag, _, err := latest.GitTag(
 					context.Background(),
 					repo,
 					&latest.GitTagOptions{
@@ -63,7 +63,7 @@ func GitSource() template.FunctionSource {
 			},
 
 			"github_tag": func(repo string) (string, error) {
-				tag, err := latest.GitTag(
+				tag, _, err := latest.GitTag(
 					context.Background(),
 					fmt.Sprintf("https://github.com/%s", repo),
 					&latest.GitTagOptions{
@@ -84,7 +84,7 @@ func GitSource() template.FunctionSource {
 			},
 
 			"prefixed_github_tag": func(repo, prefix string) (string, error) {
-				tag, err := latest.GitTag(
+				tag, _, err := latest.GitTag(
 					context.Background(),
 					fmt.Sprintf("https://github.com/%s", repo),
 					&latest.GitTagOptions{
