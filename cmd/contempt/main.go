@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/csmith/contempt"
-	"github.com/csmith/envflag"
+	"github.com/csmith/envflag/v2"
 	"golang.org/x/exp/slices"
 )
 
