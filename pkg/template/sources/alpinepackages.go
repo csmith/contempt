@@ -7,7 +7,7 @@ import (
 	tt "text/template"
 
 	"github.com/csmith/contempt/pkg/template"
-	"github.com/csmith/latest/v2"
+	"github.com/csmith/latest/v3"
 )
 
 func AlpinePackagesSource(mirror string) template.FunctionSource {
