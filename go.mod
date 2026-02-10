@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/csmith/envflag v1.0.0
 	github.com/csmith/latest/v2 v2.0.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	gopkg.in/osteele/liquid.v1 v1.2.4
 )
