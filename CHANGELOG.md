@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.1 - 2026-02-16
+
+- Updated to latest v3.0.1 which fixes an occasional infinite loop when
+  resolving APK dependencies with pc: constraints
+- Other minor dependency updates
+
 ## 1.13.0 - 2025-11-20
 
 - Add ability to pass username/password when checking for the latest git tags
