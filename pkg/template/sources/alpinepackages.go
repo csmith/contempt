@@ -35,11 +35,12 @@ func latestAlpinePackages(mirror string, names ...string) (map[string]string, er
 		return nil, err
 	}
 
+	processed := make(map[string]bool)
 	res := make(map[string]string)
 	queue := append([]string{}, names...)
 
 	for len(queue) > 0 {
-		if _, ok := res[queue[0]]; ok {
+		if processed[queue[0]] {
 			// We've already got a resolution for this package, skip it.
 			queue = queue[1:]
 			continue
@@ -58,6 +59,8 @@ func latestAlpinePackages(mirror string, names ...string) (map[string]string, er
 
 		queue = append(queue[1:], p.Dependencies...)
 		res[p.Name] = p.Version
+		processed[p.Name] = true
+		processed[queue[0]] = true
 	}
 
 	return res, nil

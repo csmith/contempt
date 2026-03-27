@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.13.2 - 2026-03-27
+
+- Fixed an occasional infinite loop in _contempt_ when resolving APK
+  dependencies with pc: constraints. Thanks @Greboid for the report.
+
 ## 1.13.1 - 2026-02-16
 
 - Updated to latest v3.0.1 which fixes an occasional infinite loop when
