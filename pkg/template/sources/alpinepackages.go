@@ -57,10 +57,10 @@ func latestAlpinePackages(mirror string, names ...string) (map[string]string, er
 			return nil, fmt.Errorf("package required but not found: %s", queue[0])
 		}
 
-		queue = append(queue[1:], p.Dependencies...)
 		res[p.Name] = p.Version
 		processed[p.Name] = true
 		processed[queue[0]] = true
+		queue = append(queue[1:], p.Dependencies...)
 	}
 
 	return res, nil

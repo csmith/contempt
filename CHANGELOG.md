@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.13.3 - 2026-03-27
+
+- Fixed an incorrect array index in the previous fix...
+
 ## 1.13.2 - 2026-03-27
 
 - Fixed an occasional infinite loop in _contempt_ when resolving APK
