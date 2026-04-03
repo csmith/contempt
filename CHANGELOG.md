@@ -2,7 +2,7 @@
 
 ## 1.14.0 - 2026-04-03
 
-- Add unreleased_git_tag and prefixed_unreleased_git_tag (thanks @greboid)
+- Add `unreleased_git_tag` and `prefixed_unreleased_git_tag` (thanks @greboid)
 
 ## 1.13.3 - 2026-03-27
 
