@@ -83,6 +83,49 @@ func GitSource() template.FunctionSource {
 				return tag, nil
 			},
 
+			"unreleased_git_tag": func(repo string) (string, error) {
+				tag, _, err := latest.GitTag(
+					context.Background(),
+					repo,
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: false,
+						},
+					},
+				)
+				if err != nil {
+					return "", err
+				}
+				writer.Write(fmt.Sprintf("git:%s", repo), tag)
+				return tag, nil
+			},
+
+			"prefixed_unreleased_git_tag": func(repo, prefix string) (string, error) {
+				tag, _, err := latest.GitTag(
+					context.Background(),
+					repo,
+					&latest.GitTagOptions{
+						Username: *gitTagUser,
+						Password: *gitTagPass,
+						TagOptions: latest.TagOptions{
+							IgnoreDates:      true,
+							IgnoreErrors:     true,
+							IgnorePreRelease: false,
+							TrimPrefixes:     []string{prefix},
+						},
+					},
+				)
+				if err != nil {
+					return "", err
+				}
+				writer.Write(fmt.Sprintf("git:%s", repo), strings.TrimPrefix(tag, prefix))
+				return tag, nil
+			},
+
 			"prefixed_github_tag": func(repo, prefix string) (string, error) {
 				tag, _, err := latest.GitTag(
 					context.Background(),
