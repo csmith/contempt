@@ -1,12 +1,12 @@
 module github.com/csmith/contempt
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/csmith/envflag/v2 v2.0.0
 	github.com/csmith/latest/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
+	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 	gopkg.in/osteele/liquid.v1 v1.2.4
 )
 
@@ -34,7 +34,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/vbatts/tar-split v0.12.2 // indirect
 	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
