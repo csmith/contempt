@@ -11,9 +11,10 @@ import (
 )
 
 // FindProjects returns a slice of all images that can be built from this repo, sorted such that images are positioned
-// after all of their dependencies.
-func FindProjects(dir, templateName string) ([]string, error) {
-	deps := make(map[string][]string)
+// after all of their dependencies. It also returns a map of project names to the template file they use.
+func FindProjects(dir string, templateNames ...string) ([]string, map[string]string, error) {
+	depList := make(map[string][]string)
+	projectTemplates := make(map[string]string)
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -23,16 +24,20 @@ func FindProjects(dir, templateName string) ([]string, error) {
 			return filepath.SkipDir
 		}
 
-		if d.Name() == templateName {
-			project := filepath.Dir(path)
-			if _, err := os.Stat(filepath.Join(project, "IGNORE")); errors.Is(err, os.ErrNotExist) {
-				deps[filepath.Base(project)] = dependencies(project, templateName)
+		for _, tn := range templateNames {
+			if d.Name() == tn {
+				project := filepath.Dir(path)
+				if _, err := os.Stat(filepath.Join(project, "IGNORE")); errors.Is(err, os.ErrNotExist) {
+					name := filepath.Base(project)
+					projectTemplates[name] = tn
+					depList[name] = dependencies(project, tn)
+				}
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var res []string
@@ -49,23 +54,23 @@ func FindProjects(dir, templateName string) ([]string, error) {
 		return found == len(reqs)
 	}
 
-	for len(deps) > 0 {
+	for len(depList) > 0 {
 		var batch []string
-		for d := range deps {
-			if satisfied(deps[d]) {
+		for d := range depList {
+			if satisfied(depList[d]) {
 				batch = append(batch, d)
-				delete(deps, d)
+				delete(depList, d)
 			}
 		}
 		if len(batch) == 0 {
-			return nil, fmt.Errorf("could not fully resolve dependencies: %#v", deps)
+			return nil, nil, fmt.Errorf("could not fully resolve dependencies: %#v", depList)
 		}
 
 		sort.Strings(batch)
 		res = append(res, batch...)
 	}
 
-	return res, nil
+	return res, projectTemplates, nil
 }
 
 func dependencies(dir, templateName string) []string {
