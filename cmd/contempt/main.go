@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	templateExplicit bool
+	outputExplicit   bool
 	templateName     = flag.String("template", "Dockerfile.gotpl", "The name of the template files")
 	outputName       = flag.String("output", "Dockerfile", "The name of the output files")
 	filter           = flag.String("project", "", "A comma-separated list of projects to generate, instead of all detected ones")
@@ -35,6 +37,15 @@ var (
 func main() {
 	envflag.Parse()
 
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "template" {
+			templateExplicit = true
+		}
+		if f.Name == "output" {
+			outputExplicit = true
+		}
+	})
+
 	if flag.NArg() != 2 {
 		_, _ = fmt.Fprintf(os.Stderr, "Required arguments missing: <input dir> <output dir>\n")
 		flag.Usage()
@@ -48,7 +59,12 @@ func main() {
 		log.Fatalf("Failed to resolve project directory: %v", err)
 	}
 
-	projects, err := contempt.FindProjects(projectDir, *templateName)
+	templateNames := []string{*templateName}
+	if !templateExplicit && !outputExplicit {
+		templateNames = []string{"Dockerfile.gotpl", "Containerfile.gotpl"}
+	}
+
+	projects, projectTemplates, err := contempt.FindProjects(projectDir, templateNames...)
 	if err != nil {
 		log.Fatalf("Failed to find projects: %v", err)
 	}
@@ -63,14 +79,20 @@ func main() {
 				fmt.Printf("::group::%s\n", projects[i])
 			}
 			log.Printf("Checking project %s", projects[i])
-			outPath := filepath.Join(flag.Arg(1), projects[i], *outputName)
-			changes, err := contempt.Generate(*sourceLink, flag.Arg(0), filepath.Join(projects[i], *templateName), outPath)
+			templateForProject := projectTemplates[projects[i]]
+			outputForProject := *outputName
+			if templateForProject == "Containerfile.gotpl" {
+				outputForProject = "Containerfile"
+			}
+
+			outPath := filepath.Join(flag.Arg(1), projects[i], outputForProject)
+			changes, err := contempt.Generate(*sourceLink, flag.Arg(0), filepath.Join(projects[i], templateForProject), outPath)
 			if err != nil {
 				log.Fatalf("Failed to generate project %s: %v", projects[i], err)
 			}
 
 			if *commit {
-				if err := doCommit(projects[i], changes); err != nil {
+				if err := doCommit(projects[i], outputForProject, changes); err != nil {
 					log.Printf("Failed to commit %s: %v", projects[i], err)
 					continue
 				}
@@ -111,12 +133,12 @@ func main() {
 	}
 }
 
-func doCommit(project string, changes []materials.Change) error {
+func doCommit(project, outputForProject string, changes []materials.Change) error {
 	if err := runGitCommand(
 		"-C",
 		flag.Arg(1),
 		"add",
-		filepath.Join(project, *outputName),
+		filepath.Join(project, outputForProject),
 	); err != nil {
 		return err
 	}
@@ -128,7 +150,7 @@ func doCommit(project string, changes []materials.Change) error {
 		"--no-gpg-sign",
 		"-m",
 		fmt.Sprintf("[%s] %s", project, formatChanges(changes)),
-		filepath.Join(project, *outputName),
+		filepath.Join(project, outputForProject),
 	); err != nil {
 		return err
 	}
