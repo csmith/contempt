@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/csmith/envflag/v2 v2.0.0
 	github.com/csmith/latest/v3 v3.0.1
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	gopkg.in/osteele/liquid.v1 v1.2.4
 )
@@ -17,7 +17,6 @@ require (
 	github.com/containerd/stargz-snapshotter/estargz v0.18.1 // indirect
 	github.com/csmith/apkutils/v2 v2.1.2 // indirect
 	github.com/csmith/gitrefs v1.6.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v29.0.3+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.4 // indirect
@@ -30,7 +29,6 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/osteele/liquid v1.7.0 // indirect
 	github.com/osteele/tuesday v1.0.3 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/vbatts/tar-split v0.12.2 // indirect
 	golang.org/x/net v0.55.0 // indirect
