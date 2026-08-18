@@ -210,11 +210,27 @@ list of all packages pinned to their current versions.
 
 ```gotemplate
 {{github_tag "csmith/contempt"}}
-{{prefixed_github_tag "csmith/contempt" "release-"}}
+{{github_tag "csmith/contempt" "prefix=release-"}}
+{{github_tag "curl/curl" "prefix=curl-" "clean"}}
 ```
 
-Returns the latest semver tag of the given repository. The "prefixed" variant will discard
-the given prefix from tag names before comparing them using semver.
+Returns the latest semver tag of the given repository, optionally configured with one or
+more of the following options:
+
+- `prefix=<string>`: discard the given prefix from tag names before comparing them using
+  semver. May be given multiple times, with prefixes discarded in order.
+- `clean`: build the version to compare by joining the runs of digits in the first
+  hyphen-separated part of the tag with dots, e.g. `8_13_0` becomes `8.13.0`. Anything
+  after the first hyphen is kept as a pre-release, e.g. `8_13_0-1` becomes `8.13.0-1`, so
+  pre-release filtering still applies. Useful for projects like curl that don't use dots
+  in their version tags; combine with `prefix=` to discard any leading non-numeric text.
+- `unreleased`: also consider pre-release versions when determining the latest tag.
+
+Regardless of the options used, the raw tag is returned, e.g. `curl-8_13_0`. The options
+only affect which tag is considered the latest, and the version recorded in the BOM.
+
+The `prefixed_github_tag` variant is deprecated; use `github_tag` with a `prefix=` option
+instead.
 
 Use the `-git-tag-user` and `-git-tag-pass` flags if authentication is required.
 
@@ -222,14 +238,15 @@ Use the `-git-tag-user` and `-git-tag-pass` flags if authentication is required.
 
 ```gotemplate
 {{git_tag "https://git.sr.ht/~csmith/example"}}
-{{prefixed_git_tag "https://git.sr.ht/~csmith/example" "release-"}}
+{{git_tag "https://git.sr.ht/~csmith/example" "prefix=release-"}}
+{{git_tag "https://git.sr.ht/~csmith/example" "unreleased"}}
 ```
 
-Returns the latest semver tag of the given repository. The "prefixed" variant will discard
-the given prefix from tag names before comparing them using semver.
+Returns the latest semver tag of the given repository. See [GitHub tag](#github-tag) for
+the available options.
 
-The `unreleased_git_tag` and `prefixed_unreleased_git_tag` variants work in the same way,
-but will also consider pre-release versions when determining the latest tag.
+The `unreleased_git_tag`, `prefixed_git_tag` and `prefixed_unreleased_git_tag` variants
+are deprecated; use `git_tag` with the `unreleased` and/or `prefix=` options instead.
 
 Use the `-git-tag-user` and `-git-tag-pass` flags if authentication is required.
 

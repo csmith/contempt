@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.16.0 - 2026-08-18 
+
+- `git_tag` and `github_tag` now accept optional string options:
+  `prefix=<string>` to discard a prefix from tag names, `clean` to handle tags like curl's
+  `curl-8_13_0` that don't use dots as version separators, and `unreleased` to consider
+  pre-release versions
+- Deprecated `unreleased_git_tag`, `prefixed_git_tag`, `prefixed_github_tag` and
+  `prefixed_unreleased_git_tag` in favour of the new `unreleased` and `prefix=` options
+- Updated to latest v3.1.0
+
 ## 1.15.0 - 2026-08-18 
 
 - The orchestrator now discovers projects and determines their dependencies by
