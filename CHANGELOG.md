@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.15.0 - 2026-08-18 
 
 - The orchestrator now discovers projects and determines their dependencies by
   dry-running their templates, in the same way as Contempt itself, rather than
