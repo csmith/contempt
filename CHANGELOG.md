@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- The orchestrator now discovers projects and determines their dependencies by
+  dry-running their templates, in the same way as Contempt itself, rather than
+  by parsing the generated Dockerfiles/Containerfiles. Projects no longer need
+  a generated file committed before the orchestrator will schedule them.
+- The orchestrator now skips directories containing an `IGNORE` file, matching
+  Contempt's behaviour.
+
 ## 1.14.0 - 2026-04-03
 
 - Add `unreleased_git_tag` and `prefixed_unreleased_git_tag` (thanks @greboid)

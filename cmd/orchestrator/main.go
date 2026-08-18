@@ -1,18 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"github.com/csmith/contempt/internal"
-	"github.com/csmith/envflag/v2"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
-	"gopkg.in/osteele/liquid.v1"
-	"io/fs"
 	"os"
-	"path"
-	"strings"
+
+	"github.com/csmith/contempt"
+	"github.com/csmith/envflag/v2"
+	"gopkg.in/osteele/liquid.v1"
 )
 
 var (
@@ -20,6 +15,7 @@ var (
 	registry = flags.String("registry", "", "The name of the registry that images are pushed to")
 	template = flags.String("template", "", "Path of the template to read")
 	output   = flags.String("output", "", "Path to output the generated file")
+	includes = flags.String("includes", "_includes", "Folder of template files to include")
 )
 
 func main() {
@@ -39,33 +35,20 @@ func main() {
 		}
 	})
 
-	s := os.DirFS(flags.Arg(0))
+	// Templates are only ever dry-run to determine their dependencies, so the
+	// template functions that talk to the network are never invoked and the
+	// Alpine mirror is irrelevant.
+	contempt.InitTemplates(*registry, "", os.DirFS(*includes))
 
-	files, err := internal.FindFiles(s, func(s string) bool {
-		return strings.ToLower(s) == "dockerfile" || strings.ToLower(s) == "containerfile"
-	})
-
+	projects, err := contempt.FindProjects(flags.Arg(0), "Dockerfile.gotpl", "Containerfile.gotpl")
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to scan directory '%s': %v\n", flag.Arg(0), err)
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to find projects in '%s': %v\n", flags.Arg(0), err)
 		os.Exit(3)
 	}
 
-	var deps []target
-	for i := range files {
-		name := path.Base(path.Dir(files[i]))
-		needed, err := readDependencies(s, *registry, files[i])
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to find dependencies of %s: %v\n", files[i], err)
-			os.Exit(4)
-		}
-
-		deps = append(deps, target{name, needed})
-	}
-
-	deps, err = orderDependencies(deps)
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to order dependencies: %v\n", err)
-		os.Exit(5)
+	targets := make([]target, 0, len(projects))
+	for i := range projects {
+		targets = append(targets, target{projects[i].Name, projects[i].Needed})
 	}
 
 	tpl, err := os.ReadFile(*template)
@@ -76,7 +59,7 @@ func main() {
 
 	engine := liquid.NewEngine()
 	out, err := engine.ParseAndRender(tpl, liquid.Bindings{
-		"targets": deps,
+		"targets": targets,
 	})
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to generate output: %v\n", err)
@@ -93,91 +76,4 @@ func main() {
 type target struct {
 	Name   string   `liquid:"name"`
 	Needed []string `liquid:"needed"`
-}
-
-// TODO: At some point this should switch to read the template syntax used by the writer
-func readDependencies(s fs.FS, registry string, p string) ([]string, error) {
-	f, err := s.Open(p)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	// Ignore dependencies on yourself
-	ownName := path.Base(path.Dir(p))
-
-	dependencies := make(map[string]bool)
-	repo := fmt.Sprintf("%s/", strings.ToLower(registry))
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := strings.ToLower(strings.TrimSpace(scanner.Text()))
-		parts := strings.Fields(line)
-		if len(parts) >= 2 && parts[0] == "from" && strings.HasPrefix(parts[1], repo) {
-			name := strings.TrimPrefix(parts[1], repo)
-			name, _, _ = strings.Cut(name, "@")
-			name, _, _ = strings.Cut(name, ":")
-			if name != ownName {
-				dependencies[name] = true
-			}
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	deps := maps.Keys(dependencies)
-	slices.Sort(deps)
-	return deps, nil
-}
-
-// TODO: There's probably a better way to do this (e.g. by traversing the graph). Do that and test.
-func orderDependencies(deps []target) ([]target, error) {
-	var ordered []target
-
-	satisfied := func(dep target) bool {
-		for i := range dep.Needed {
-			found := false
-			for j := range ordered {
-				if ordered[j].Name == dep.Needed[i] {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return false
-			}
-		}
-		return true
-	}
-
-	for len(deps) > 0 {
-		var batch []target
-		var remaining []target
-		for d := range deps {
-			if satisfied(deps[d]) {
-				batch = append(batch, deps[d])
-			} else {
-				remaining = append(remaining, deps[d])
-			}
-		}
-		deps = remaining
-
-		if len(batch) == 0 {
-			return nil, fmt.Errorf("could not find any satisfied dependencies - is there a loop? Pending: %#v, selected: %#v", deps, ordered)
-		}
-
-		slices.SortFunc(batch, func(i, j target) int {
-			if i.Name < j.Name {
-				return 1
-			} else if i.Name > j.Name {
-				return -1
-			} else {
-				return 0
-			}
-		})
-		ordered = append(ordered, batch...)
-	}
-
-	return ordered, nil
 }

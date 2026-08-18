@@ -64,7 +64,7 @@ func main() {
 		templateNames = []string{"Dockerfile.gotpl", "Containerfile.gotpl"}
 	}
 
-	projects, projectTemplates, err := contempt.FindProjects(projectDir, templateNames...)
+	projects, err := contempt.FindProjects(projectDir, templateNames...)
 	if err != nil {
 		log.Fatalf("Failed to find projects: %v", err)
 	}
@@ -74,32 +74,32 @@ func main() {
 	filtered := strings.Split(*filter, ",")
 
 	for i := range projects {
-		if *filter == "" || slices.Contains(filtered, projects[i]) {
+		if *filter == "" || slices.Contains(filtered, projects[i].Name) {
 			if *workflowCommands {
-				fmt.Printf("::group::%s\n", projects[i])
+				fmt.Printf("::group::%s\n", projects[i].Name)
 			}
-			log.Printf("Checking project %s", projects[i])
-			templateForProject := projectTemplates[projects[i]]
+			log.Printf("Checking project %s", projects[i].Name)
+			templateForProject := projects[i].Template
 			outputForProject := *outputName
 			if templateForProject == "Containerfile.gotpl" {
 				outputForProject = "Containerfile"
 			}
 
-			outPath := filepath.Join(flag.Arg(1), projects[i], outputForProject)
-			changes, err := contempt.Generate(*sourceLink, flag.Arg(0), filepath.Join(projects[i], templateForProject), outPath)
+			outPath := filepath.Join(flag.Arg(1), projects[i].Name, outputForProject)
+			changes, err := contempt.Generate(*sourceLink, flag.Arg(0), filepath.Join(projects[i].Name, templateForProject), outPath)
 			if err != nil {
-				log.Fatalf("Failed to generate project %s: %v", projects[i], err)
+				log.Fatalf("Failed to generate project %s: %v", projects[i].Name, err)
 			}
 
 			if *commit {
-				if err := doCommit(projects[i], outputForProject, changes); err != nil {
-					log.Printf("Failed to commit %s: %v", projects[i], err)
+				if err := doCommit(projects[i].Name, outputForProject, changes); err != nil {
+					log.Printf("Failed to commit %s: %v", projects[i].Name, err)
 					continue
 				}
 			}
 
 			if (*commit && *build) || *forceBuild {
-				imageName := fmt.Sprintf("%s/%s", *registry, projects[i])
+				imageName := fmt.Sprintf("%s/%s", *registry, projects[i].Name)
 				if err := runBuildahCommand(
 					"bud",
 					"--timestamp",
@@ -107,9 +107,9 @@ func main() {
 					"--layers",
 					"--tag",
 					imageName,
-					filepath.Join(flag.Arg(1), projects[i]),
+					filepath.Join(flag.Arg(1), projects[i].Name),
 				); err != nil {
-					log.Fatalf("Failed to build %s: %v", projects[i], err)
+					log.Fatalf("Failed to build %s: %v", projects[i].Name, err)
 				}
 
 				if *push {
@@ -118,11 +118,11 @@ func main() {
 						if err := runBuildahCommand("push", imageName); err == nil {
 							success = true
 						} else {
-							log.Printf("Failed to push %s [attempt %d/%d]: %v", projects[i], r+1, *pushRetries+1, err)
+							log.Printf("Failed to push %s [attempt %d/%d]: %v", projects[i].Name, r+1, *pushRetries+1, err)
 						}
 					}
 					if !success {
-						log.Fatalf("Failed to push %s after %d attempts", projects[i], *pushRetries+1)
+						log.Fatalf("Failed to push %s after %d attempts", projects[i].Name, *pushRetries+1)
 					}
 				}
 			}
