@@ -1,0 +1,43 @@
+name: Update workflow
+
+# Regenerate the per-project workflow whenever the templates change. The
+# generated workflow itself is ignored, to avoid a regenerating loop.
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '.github/workflows/update.yml'
+
+jobs:
+  update-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          # The default token can't push, so use one that can
+          token: ${{ secrets.CONTEMPT_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install contempt orchestrator
+        run: go install github.com/csmith/contempt/cmd/orchestrator@latest
+
+      - name: Run contempt orchestrator
+        env:
+          REGISTRY: reg.example.com
+          TEMPLATE: .github/workflows/update.yml.tpl
+          OUTPUT: .github/workflows/update.yml
+        run: orchestrator .
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "${{ secrets.GIT_USERNAME }}"
+          git config user.email "${{ secrets.GIT_EMAIL }}"
+          git add .github/workflows/update.yml
+          git diff --cached --quiet || git commit -m "Update workflow"
+          git push

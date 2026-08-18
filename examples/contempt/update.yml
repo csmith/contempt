@@ -1,0 +1,43 @@
+name: update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '33 3 * * *'
+  push:
+    paths-ignore:
+      - '**/Containerfile'
+      - '**/Dockerfile'
+      - '.github/**'
+
+# Prevent scheduled runs from racing with pushes
+concurrency: update
+
+jobs:
+  update:
+    name: Update and build all images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Update
+        env:
+          BUILDAH_ISOLATION: chroot
+          REGISTRY: reg.example.com
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASS: ${{ secrets.REGISTRY_PASS }}
+          SOURCE_LINK: https://github.com/your-name/your-repo-of-templates/blob/master/
+        run: |
+          go install github.com/csmith/contempt/cmd/contempt@latest
+          git config user.name "${{ secrets.GIT_USERNAME }}"
+          git config user.email "${{ secrets.GIT_EMAIL }}"
+          buildah login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" "$REGISTRY"
+          contempt --commit --build --push . .
+          git push
