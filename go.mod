@@ -1,6 +1,6 @@
 module github.com/csmith/contempt
 
-go 1.25.7
+go 1.26.0
 
 require (
 	github.com/csmith/envflag/v2 v2.0.0
@@ -27,8 +27,8 @@ require (
 	github.com/osteele/tuesday v1.0.3 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/stretchr/testify v1.12.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
