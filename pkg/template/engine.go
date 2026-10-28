@@ -37,7 +37,7 @@ func NewEngine(logger *slog.Logger, includes fs.FS) *Engine {
 // If Register is called with sources that return functions with conflicting
 // names, later instances of the functions replace earlier ones.
 func (e *Engine) Register(source FunctionSource) {
-	functions := source(&engineBomWriter{engine: e})
+	functions := source(e.writeMaterial)
 
 	for i := range functions {
 		e.logger.Debug("registered template function", "name", i)
@@ -148,17 +148,11 @@ func (e *Engine) Execute(out io.Writer, path string) (materials.BOM, error) {
 	return e.bom, err
 }
 
-type engineBomWriter struct {
-	engine *Engine
-}
-
-func (e *engineBomWriter) Write(material, version string) {
-	e.engine.logger.Debug("gathered material", "material", material, "version", version)
-	e.engine.bom[material] = version
+func (e *Engine) writeMaterial(material, version string) {
+	e.logger.Debug("gathered material", "material", material, "version", version)
+	e.bom[material] = version
 }
 
 type FunctionSource = func(BomWriter) template.FuncMap
 
-type BomWriter interface {
-	Write(material, version string)
-}
+type BomWriter = func(material, version string)

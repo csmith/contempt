@@ -27,13 +27,15 @@ func main() {
 		os.Exit(2)
 	}
 
-	flags.VisitAll(func(f *flag.Flag) {
-		if f.Value.String() == "" {
-			_, _ = fmt.Fprintf(os.Stderr, "Missing required flag: %s\n", f.Name)
-			flags.Usage()
-			os.Exit(2)
-		}
-	})
+	flags.VisitAll(
+		func(f *flag.Flag) {
+			if f.Value.String() == "" {
+				_, _ = fmt.Fprintf(os.Stderr, "Missing required flag: %s\n", f.Name)
+				flags.Usage()
+				os.Exit(2)
+			}
+		},
+	)
 
 	// Templates are only ever dry-run to determine their dependencies, so the
 	// template functions that talk to the network are never invoked and the
@@ -57,10 +59,12 @@ func main() {
 		os.Exit(6)
 	}
 
-	engine := liquid.NewEngine()
-	out, err := engine.ParseAndRender(tpl, liquid.Bindings{
-		"targets": targets,
-	})
+	out, err := liquid.NewEngine().ParseAndRender(
+		tpl,
+		liquid.Bindings{
+			"targets": targets,
+		},
+	)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to generate output: %v\n", err)
 		os.Exit(7)

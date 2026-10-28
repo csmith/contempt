@@ -21,11 +21,15 @@ func ImageSource(registry string) template.FunctionSource {
 		return tt.FuncMap{
 			"registry": func() string { return registry },
 			"image": func(ref string) (string, error) {
-				digest, err := latest.ImageDigest(context.Background(), ref, &latest.ImageOptions{
-					Registry: registry,
-					Username: *registryUser,
-					Password: *registryPass,
-				})
+				digest, err := latest.ImageDigest(
+					context.Background(),
+					ref,
+					&latest.ImageOptions{
+						Registry: registry,
+						Username: *registryUser,
+						Password: *registryPass,
+					},
+				)
 
 				if err != nil {
 					return "", err
@@ -38,7 +42,7 @@ func ImageSource(registry string) template.FunctionSource {
 					image = fmt.Sprintf("%s/%s", registry, ref)
 				}
 
-				writer.Write(fmt.Sprintf("image:%s", ref), strings.TrimPrefix(digest, "sha256:"))
+				writer("image:"+ref, strings.TrimPrefix(digest, "sha256:"))
 				return fmt.Sprintf("%s@%s", image, digest), nil
 			},
 		}

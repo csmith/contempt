@@ -9,12 +9,10 @@ import (
 	"github.com/csmith/latest/v3"
 )
 
-// TestGitTagTemplateOptions checks that options pass through the template
-// engine to the option parser. An invalid option is used so that the call
-// fails before any network access happens.
 func TestGitTagTemplateOptions(t *testing.T) {
 	funcs := GitSource()(nil)
 
+	// An invalid option makes the call fail in the option parser, before any network access happens.
 	for _, tmpl := range []string{
 		`{{git_tag "https://example.com/repo" "nope"}}`,
 		`{{github_tag "owner/repo" "nope"}}`,
@@ -112,30 +110,33 @@ func TestBuildTagOptions(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			actual, err := buildTagOptions(test.opts)
-			if test.err != "" {
-				if err == nil || err.Error() != test.err {
-					t.Fatalf("Expected error %q, got: %v", test.err, err)
+		t.Run(
+			test.name,
+			func(t *testing.T) {
+				actual, err := buildTagOptions(test.opts)
+				if test.err != "" {
+					if err == nil || err.Error() != test.err {
+						t.Fatalf("Expected error %q, got: %v", test.err, err)
+					}
+					return
 				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("Unexpected error: %v", err)
-			}
-			// DeepEqual treats non-nil funcs as unequal, so compare them by
-			// behaviour and everything else by value.
-			actualTransform, expectedTransform := actual.Transform, test.expected.Transform
-			actual.Transform, test.expected.Transform = nil, nil
-			if !reflect.DeepEqual(actual, test.expected) {
-				t.Errorf("Expected %+v, got %+v", test.expected, actual)
-			}
-			if (actualTransform == nil) != (expectedTransform == nil) {
-				t.Errorf("Expected transform nil: %v, got nil: %v", expectedTransform == nil, actualTransform == nil)
-			} else if actualTransform != nil && actualTransform("8_13_0") != expectedTransform("8_13_0") {
-				t.Errorf("Expected transform(%q) == %q, got %q", "8_13_0", expectedTransform("8_13_0"), actualTransform("8_13_0"))
-			}
-		})
+				if err != nil {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+				// DeepEqual treats non-nil funcs as unequal, so compare them by
+				// behaviour and everything else by value.
+				actualTransform, expectedTransform := actual.Transform, test.expected.Transform
+				actual.Transform, test.expected.Transform = nil, nil
+				if !reflect.DeepEqual(actual, test.expected) {
+					t.Errorf("Expected %+v, got %+v", test.expected, actual)
+				}
+				if (actualTransform == nil) != (expectedTransform == nil) {
+					t.Errorf("Expected transform nil: %v, got nil: %v", expectedTransform == nil, actualTransform == nil)
+				} else if actualTransform != nil && actualTransform("8_13_0") != expectedTransform("8_13_0") {
+					t.Errorf("Expected transform(%q) == %q, got %q", "8_13_0", expectedTransform("8_13_0"), actualTransform("8_13_0"))
+				}
+			},
+		)
 	}
 }
 
@@ -154,10 +155,13 @@ func TestCleanTag(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.tag, func(t *testing.T) {
-			if actual := cleanTag(test.tag); actual != test.expected {
-				t.Errorf("Expected %q, got %q", test.expected, actual)
-			}
-		})
+		t.Run(
+			test.tag,
+			func(t *testing.T) {
+				if actual := cleanTag(test.tag); actual != test.expected {
+					t.Errorf("Expected %q, got %q", test.expected, actual)
+				}
+			},
+		)
 	}
 }

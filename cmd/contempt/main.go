@@ -1,19 +1,20 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"github.com/csmith/contempt/pkg/materials"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/csmith/contempt"
+	"github.com/csmith/contempt/pkg/materials"
 	"github.com/csmith/envflag/v2"
-	"golang.org/x/exp/slices"
 )
 
 var (
@@ -21,30 +22,48 @@ var (
 	outputExplicit   bool
 	templateName     = flag.String("template", "Dockerfile.gotpl", "The name of the template files")
 	outputName       = flag.String("output", "Dockerfile", "The name of the output files")
-	filter           = flag.String("project", "", "A comma-separated list of projects to generate, instead of all detected ones")
-	sourceLink       = flag.String("source-link", "https://github.com/example/repo/blob/master/", "Link to a browsable version of the source repo")
+	filter           = flag.String(
+		"project",
+		"",
+		"A comma-separated list of projects to generate, instead of all detected ones",
+	)
+	sourceLink = flag.String(
+		"source-link",
+		"https://github.com/example/repo/blob/master/",
+		"Link to a browsable version of the source repo",
+	)
 	commit           = flag.Bool("commit", false, "Whether to automatically git commit each changed file")
 	build            = flag.Bool("build", false, "Whether to automatically build on successful commit")
 	forceBuild       = flag.Bool("force-build", false, "Whether to build projects regardless of changes")
 	push             = flag.Bool("push", false, "Whether to automatically push on successful commit")
 	pushRetries      = flag.Int("push-retries", 2, "How many times to retry pushing an image if it fails")
-	workflowCommands = flag.Bool("workflow-commands", true, "Whether to output GitHub Actions workflow commands to format logs")
-	registry         = flag.String("registry", "reg.c5h.io", "Registry to use for pushes and pulls")
-	alpineMirror     = flag.String("alpine-mirror", "https://dl-cdn.alpinelinux.org/alpine/", "Base URL of the Alpine mirror to use to query version and package info")
-	includesDir      = flag.String("includes", "_includes", "Folder of template files to include")
+	workflowCommands = flag.Bool(
+		"workflow-commands",
+		true,
+		"Whether to output GitHub Actions workflow commands to format logs",
+	)
+	registry     = flag.String("registry", "reg.c5h.io", "Registry to use for pushes and pulls")
+	alpineMirror = flag.String(
+		"alpine-mirror",
+		"https://dl-cdn.alpinelinux.org/alpine/",
+		"Base URL of the Alpine mirror to use to query version and package info",
+	)
+	includesDir = flag.String("includes", "_includes", "Folder of template files to include")
 )
 
 func main() {
 	envflag.Parse()
 
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == "template" {
-			templateExplicit = true
-		}
-		if f.Name == "output" {
-			outputExplicit = true
-		}
-	})
+	flag.Visit(
+		func(f *flag.Flag) {
+			if f.Name == "template" {
+				templateExplicit = true
+			}
+			if f.Name == "output" {
+				outputExplicit = true
+			}
+		},
+	)
 
 	if flag.NArg() != 2 {
 		_, _ = fmt.Fprintf(os.Stderr, "Required arguments missing: <input dir> <output dir>\n")
@@ -69,72 +88,87 @@ func main() {
 		log.Fatalf("Failed to find projects: %v", err)
 	}
 
-	checkExternalDependencies()
+	ctx := context.Background()
+	checkExternalDependencies(ctx)
 
 	filtered := strings.Split(*filter, ",")
 
 	for i := range projects {
-		if *filter == "" || slices.Contains(filtered, projects[i].Name) {
-			if *workflowCommands {
-				fmt.Printf("::group::%s\n", projects[i].Name)
-			}
-			log.Printf("Checking project %s", projects[i].Name)
-			templateForProject := projects[i].Template
-			outputForProject := *outputName
-			if templateForProject == "Containerfile.gotpl" {
-				outputForProject = "Containerfile"
-			}
+		if *filter != "" && !slices.Contains(filtered, projects[i].Name) {
+			continue
+		}
 
-			outPath := filepath.Join(flag.Arg(1), projects[i].Name, outputForProject)
-			changes, err := contempt.Generate(*sourceLink, flag.Arg(0), filepath.Join(projects[i].Name, templateForProject), outPath)
-			if err != nil {
-				log.Fatalf("Failed to generate project %s: %v", projects[i].Name, err)
-			}
-
-			if *commit {
-				if err := doCommit(projects[i].Name, outputForProject, changes); err != nil {
-					log.Printf("Failed to commit %s: %v", projects[i].Name, err)
-					continue
-				}
-			}
-
-			if (*commit && *build) || *forceBuild {
-				imageName := fmt.Sprintf("%s/%s", *registry, projects[i].Name)
-				if err := runBuildahCommand(
-					"bud",
-					"--timestamp",
-					"0",
-					"--layers",
-					"--tag",
-					imageName,
-					filepath.Join(flag.Arg(1), projects[i].Name),
-				); err != nil {
-					log.Fatalf("Failed to build %s: %v", projects[i].Name, err)
-				}
-
-				if *push {
-					success := false
-					for r := 0; r <= *pushRetries && !success; r++ {
-						if err := runBuildahCommand("push", imageName); err == nil {
-							success = true
-						} else {
-							log.Printf("Failed to push %s [attempt %d/%d]: %v", projects[i].Name, r+1, *pushRetries+1, err)
-						}
-					}
-					if !success {
-						log.Fatalf("Failed to push %s after %d attempts", projects[i].Name, *pushRetries+1)
-					}
-				}
-			}
-			if *workflowCommands {
-				fmt.Printf("::endgroup::\n")
-			}
+		if *workflowCommands {
+			fmt.Printf("::group::%s\n", projects[i].Name)
+		}
+		processProject(ctx, projects[i])
+		if *workflowCommands {
+			fmt.Printf("::endgroup::\n")
 		}
 	}
 }
 
-func doCommit(project, outputForProject string, changes []materials.Change) error {
+func processProject(ctx context.Context, project contempt.Project) {
+	log.Printf("Checking project %s", project.Name)
+	outputForProject := *outputName
+	if project.Template == "Containerfile.gotpl" {
+		outputForProject = "Containerfile"
+	}
+
+	changes, err := contempt.Generate(
+		*sourceLink,
+		flag.Arg(0),
+		filepath.Join(project.Name, project.Template),
+		filepath.Join(flag.Arg(1), project.Name, outputForProject),
+	)
+	if err != nil {
+		log.Fatalf("Failed to generate project %s: %v", project.Name, err)
+	}
+
+	if *commit {
+		if err := doCommit(ctx, project.Name, outputForProject, changes); err != nil {
+			log.Printf("Failed to commit %s: %v", project.Name, err)
+			return
+		}
+	}
+
+	if (*commit && *build) || *forceBuild {
+		buildAndPush(ctx, project.Name)
+	}
+}
+
+func buildAndPush(ctx context.Context, project string) {
+	imageName := fmt.Sprintf("%s/%s", *registry, project)
+	if err := runBuildahCommand(
+		ctx,
+		"bud",
+		"--timestamp",
+		"0",
+		"--layers",
+		"--tag",
+		imageName,
+		filepath.Join(flag.Arg(1), project),
+	); err != nil {
+		log.Fatalf("Failed to build %s: %v", project, err)
+	}
+
+	if !*push {
+		return
+	}
+
+	for r := 0; r <= *pushRetries; r++ {
+		err := runBuildahCommand(ctx, "push", imageName)
+		if err == nil {
+			return
+		}
+		log.Printf("Failed to push %s [attempt %d/%d]: %v", project, r+1, *pushRetries+1, err)
+	}
+	log.Fatalf("Failed to push %s after %d attempts", project, *pushRetries+1)
+}
+
+func doCommit(ctx context.Context, project, outputForProject string, changes []materials.Change) error {
 	if err := runGitCommand(
+		ctx,
 		"-C",
 		flag.Arg(1),
 		"add",
@@ -144,6 +178,7 @@ func doCommit(project, outputForProject string, changes []materials.Change) erro
 	}
 
 	if err := runGitCommand(
+		ctx,
 		"-C",
 		flag.Arg(1),
 		"commit",
@@ -157,18 +192,12 @@ func doCommit(project, outputForProject string, changes []materials.Change) erro
 	return nil
 }
 
-func runGitCommand(args ...string) error {
-	return runCommand(exec.Command(
-		"git",
-		args...,
-	))
+func runGitCommand(ctx context.Context, args ...string) error {
+	return runCommand(exec.CommandContext(ctx, "git", args...))
 }
 
-func runBuildahCommand(args ...string) error {
-	return runCommand(exec.Command(
-		"/usr/bin/buildah",
-		args...,
-	))
+func runBuildahCommand(ctx context.Context, args ...string) error {
+	return runCommand(exec.CommandContext(ctx, "/usr/bin/buildah", args...))
 }
 
 func runCommand(cmd *exec.Cmd) error {
@@ -178,15 +207,15 @@ func runCommand(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
 
-func checkExternalDependencies() {
+func checkExternalDependencies(ctx context.Context) {
 	if *build || *forceBuild {
-		if err := runBuildahCommand("--version"); err != nil {
+		if err := runBuildahCommand(ctx, "--version"); err != nil {
 			log.Fatalf("Contempt is configured to build, but buildah doesn't seem to be working: %v", err)
 		}
 	}
 
 	if *commit {
-		if err := runGitCommand("--version"); err != nil {
+		if err := runGitCommand(ctx, "--version"); err != nil {
 			log.Fatalf("Contempt is configured to commit, but git doesn't seem to be working: %v", err)
 		}
 	}
@@ -202,9 +231,12 @@ func formatChanges(changes []materials.Change) string {
 	if len(changes) > 1 {
 		builder.WriteString(fmt.Sprintf("%d changes\n", len(changes)))
 
-		sort.Slice(changes, func(i, j int) bool {
-			return changes[i].Material < changes[j].Material
-		})
+		sort.Slice(
+			changes,
+			func(i, j int) bool {
+				return changes[i].Material < changes[j].Material
+			},
+		)
 	}
 
 	for i := range changes {

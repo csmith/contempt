@@ -5,7 +5,6 @@ go 1.26.0
 require (
 	github.com/csmith/envflag/v2 v2.0.0
 	github.com/csmith/latest/v3 v3.1.0
-	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	gopkg.in/osteele/liquid.v1 v1.2.4
 )
 

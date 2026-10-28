@@ -16,12 +16,17 @@ func AlpineReleaseSource(mirror string) template.FunctionSource {
 		once := sync.Once{}
 		check := func() error {
 			var err error
-			once.Do(func() {
-				version, url, checksum, err = latest.AlpineRelease(context.Background(), &latest.AlpineReleaseOptions{
-					Mirror:  mirror,
-					Flavour: "minirootfs",
-				})
-			})
+			once.Do(
+				func() {
+					version, url, checksum, err = latest.AlpineRelease(
+						context.Background(),
+						&latest.AlpineReleaseOptions{
+							Mirror:  mirror,
+							Flavour: "minirootfs",
+						},
+					)
+				},
+			)
 			return err
 		}
 
@@ -31,7 +36,7 @@ func AlpineReleaseSource(mirror string) template.FunctionSource {
 					return "", err
 				}
 
-				writer.Write("alpine", version)
+				writer("alpine", version)
 				return url, nil
 			},
 			"alpine_checksum": func() (string, error) {
@@ -39,7 +44,7 @@ func AlpineReleaseSource(mirror string) template.FunctionSource {
 					return "", err
 				}
 
-				writer.Write("alpine", version)
+				writer("alpine", version)
 				return checksum, nil
 			},
 		}
@@ -53,9 +58,11 @@ func GoReleaseSource() template.FunctionSource {
 		once := sync.Once{}
 		check := func() error {
 			var err error
-			once.Do(func() {
-				version, url, checksum, err = latest.GoRelease(context.Background(), nil)
-			})
+			once.Do(
+				func() {
+					version, url, checksum, err = latest.GoRelease(context.Background(), nil)
+				},
+			)
 			return err
 		}
 
@@ -65,7 +72,7 @@ func GoReleaseSource() template.FunctionSource {
 					return "", err
 				}
 
-				writer.Write("golang", version)
+				writer("golang", version)
 				return url, nil
 			},
 			"golang_checksum": func() (string, error) {
@@ -73,7 +80,7 @@ func GoReleaseSource() template.FunctionSource {
 					return "", err
 				}
 
-				writer.Write("golang", version)
+				writer("golang", version)
 				return checksum, nil
 			},
 		}
@@ -105,11 +112,16 @@ func postgresSpecificReleaseFuncs(writer template.BomWriter, majorVersion int) t
 	once := sync.Once{}
 	check := func() error {
 		var err error
-		once.Do(func() {
-			version, url, checksum, err = latest.PostgresRelease(context.Background(), &latest.TagOptions{
-				MajorVersionMax: majorVersion,
-			})
-		})
+		once.Do(
+			func() {
+				version, url, checksum, err = latest.PostgresRelease(
+					context.Background(),
+					&latest.TagOptions{
+						MajorVersionMax: majorVersion,
+					},
+				)
+			},
+		)
 		return err
 	}
 
@@ -119,7 +131,7 @@ func postgresSpecificReleaseFuncs(writer template.BomWriter, majorVersion int) t
 				return "", err
 			}
 
-			writer.Write(fmt.Sprintf("postgres%d", majorVersion), version)
+			writer(fmt.Sprintf("postgres%d", majorVersion), version)
 			return url, nil
 		},
 
@@ -128,7 +140,7 @@ func postgresSpecificReleaseFuncs(writer template.BomWriter, majorVersion int) t
 				return "", err
 			}
 
-			writer.Write(fmt.Sprintf("postgres%d", majorVersion), version)
+			writer(fmt.Sprintf("postgres%d", majorVersion), version)
 			return checksum, nil
 		},
 	}
@@ -143,9 +155,12 @@ func postgresDynamicReleaseFuncs(writer template.BomWriter) tt.FuncMap {
 	var cache = make(map[int]details)
 	query := func(majorVersion int) (*details, error) {
 		if cache[majorVersion].version == "" {
-			version, url, checksum, err := latest.PostgresRelease(context.Background(), &latest.TagOptions{
-				MajorVersionMax: majorVersion,
-			})
+			version, url, checksum, err := latest.PostgresRelease(
+				context.Background(),
+				&latest.TagOptions{
+					MajorVersionMax: majorVersion,
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -166,7 +181,7 @@ func postgresDynamicReleaseFuncs(writer template.BomWriter) tt.FuncMap {
 				return "", err
 			}
 
-			writer.Write(fmt.Sprintf("postgres%d", version), d.version)
+			writer(fmt.Sprintf("postgres%d", version), d.version)
 			return d.url, nil
 		},
 
@@ -176,7 +191,7 @@ func postgresDynamicReleaseFuncs(writer template.BomWriter) tt.FuncMap {
 				return "", err
 			}
 
-			writer.Write(fmt.Sprintf("postgres%d", version), d.version)
+			writer(fmt.Sprintf("postgres%d", version), d.version)
 			return d.checksum, nil
 		},
 	}

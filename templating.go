@@ -41,10 +41,15 @@ func Generate(sourceLink, inBase, inRelativePath, outFile string) ([]materials.C
 		return nil, fmt.Errorf("unable to render template file %s: %v", outFile, err)
 	}
 
-	bom, _ := json.Marshal(newMaterials)
-	header := fmt.Sprintf("# Generated from %s%s\n# BOM: %s\n\n", sourceLink, inRelativePath, bom)
+	bom, err := json.Marshal(newMaterials)
+	if err != nil {
+		return nil, fmt.Errorf("unable to serialise BOM for %s: %v", outFile, err)
+	}
 
-	content := append([]byte(header), writer.Bytes()...)
+	content := append(
+		[]byte(fmt.Sprintf("# Generated from %s%s\n# BOM: %s\n\n", sourceLink, inRelativePath, bom)),
+		writer.Bytes()...,
+	)
 	if err := os.WriteFile(outFile, content, os.FileMode(0600)); err != nil {
 		return nil, fmt.Errorf("unable to write container file to %s: %v", outFile, err)
 	}

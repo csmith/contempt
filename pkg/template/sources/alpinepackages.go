@@ -19,7 +19,7 @@ func AlpinePackagesSource(mirror string) template.FunctionSource {
 					return nil, err
 				}
 				for i := range res {
-					writer.Write(fmt.Sprintf("apk:%s", i), res[i])
+					writer("apk:"+i, res[i])
 				}
 				return res, nil
 			},
@@ -77,10 +77,13 @@ func apkPackageInfos(mirror string) (map[string]*latest.AlpinePackageInfo, error
 	apkPackageCache = make(map[string]*latest.AlpinePackageInfo)
 	for _, repo := range []string{"community", "main"} {
 		err := func() error {
-			info, err := latest.AlpinePackages(context.Background(), &latest.AlpinePackagesOptions{
-				Mirror:     mirror,
-				Repository: repo,
-			})
+			info, err := latest.AlpinePackages(
+				context.Background(),
+				&latest.AlpinePackagesOptions{
+					Mirror:     mirror,
+					Repository: repo,
+				},
+			)
 			if err != nil {
 				return err
 			}

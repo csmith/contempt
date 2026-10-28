@@ -19,10 +19,7 @@ var (
 
 var tagNumbers = regexp.MustCompile(`[0-9]+`)
 
-// cleanTag builds a semver-comparable version from tags that don't use dots
-// as separators, e.g. curl's `8_13_0` becomes `8.13.0`. Anything after the
-// first hyphen is kept as a pre-release, so `8_13_0-1` becomes `8.13.0-1`
-// and `1.2.3-rc.1` is left alone.
+// cleanTag turns tags like curl's `8_13_0` into semver, keeping anything after the first hyphen.
 func cleanTag(tag string) string {
 	first, rest, found := strings.Cut(tag, "-")
 	version := strings.Join(tagNumbers.FindAllString(first, -1), ".")
@@ -88,7 +85,7 @@ func gitTag(writer template.BomWriter, bomPrefix, repo string, opts ...string) (
 		canonical = options.Transform(canonical)
 	}
 
-	writer.Write(fmt.Sprintf("%s:%s", bomPrefix, repo), canonical)
+	writer(fmt.Sprintf("%s:%s", bomPrefix, repo), canonical)
 	return tag, nil
 }
 
@@ -100,7 +97,7 @@ func GitSource() template.FunctionSource {
 			},
 
 			"github_tag": func(repo string, opts ...string) (string, error) {
-				return gitTag(writer, "github", fmt.Sprintf("https://github.com/%s", repo), opts...)
+				return gitTag(writer, "github", "https://github.com/"+repo, opts...)
 			},
 
 			// Deprecated: use git_tag with an "unreleased" option instead.
@@ -115,7 +112,7 @@ func GitSource() template.FunctionSource {
 
 			// Deprecated: use github_tag with a "prefix=" option instead.
 			"prefixed_github_tag": func(repo, prefix string) (string, error) {
-				return gitTag(writer, "github", fmt.Sprintf("https://github.com/%s", repo), "prefix="+prefix)
+				return gitTag(writer, "github", "https://github.com/"+repo, "prefix="+prefix)
 			},
 
 			// Deprecated: use unreleased_git_tag with a "prefix=" option instead.

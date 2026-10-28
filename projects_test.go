@@ -24,7 +24,11 @@ func TestFindProjects(t *testing.T) {
 	}
 
 	write("base", "Dockerfile.gotpl", "FROM {{image \"docker.io/library/alpine\"}}\n")
-	write("middle", "Dockerfile.gotpl", "FROM {{image \"base\"}}\nFROM {{image \"base\"}}\nCOPY --from={{image \"middle\"}} /src /dst\n")
+	write(
+		"middle",
+		"Dockerfile.gotpl",
+		"FROM {{image \"base\"}}\nFROM {{image \"base\"}}\nCOPY --from={{image \"middle\"}} /src /dst\n",
+	)
 	write("top", "Containerfile.gotpl", "FROM {{image \"middle\"}}\nFROM {{image \"docker.io/library/nginx\"}}\n")
 	write("ignored", "Dockerfile.gotpl", "FROM {{image \"base\"}}\n")
 	if err := os.WriteFile(filepath.Join(dir, "ignored", "IGNORE"), nil, 0644); err != nil {
@@ -59,7 +63,13 @@ func TestFindProjects(t *testing.T) {
 		} else {
 			for j := range expected[i].Needed {
 				if projects[i].Needed[j] != expected[i].Needed[j] {
-					t.Errorf("Project %s: expected dependency %d to be %s, got %s", projects[i].Name, j, expected[i].Needed[j], projects[i].Needed[j])
+					t.Errorf(
+						"Project %s: expected dependency %d to be %s, got %s",
+						projects[i].Name,
+						j,
+						expected[i].Needed[j],
+						projects[i].Needed[j],
+					)
 				}
 			}
 		}

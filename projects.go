@@ -4,12 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
-
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // Project describes a single image that can be built from a template.
@@ -31,35 +30,45 @@ type Project struct {
 func FindProjects(dir string, templateNames ...string) ([]Project, error) {
 	templates := make(map[string]string)
 	deps := make(map[string][]string)
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() && strings.HasPrefix(d.Name(), ".") {
-			return filepath.SkipDir
-		}
-
-		for _, tn := range templateNames {
-			if d.Name() == tn {
-				project := filepath.Dir(path)
-				if _, err := os.Stat(filepath.Join(project, "IGNORE")); errors.Is(err, os.ErrNotExist) {
-					name := filepath.Base(project)
-					needed, err := dependencies(project, tn)
-					if err != nil {
-						return fmt.Errorf("unable to determine dependencies of %s: %v", path, err)
-					}
-					templates[name] = tn
-					deps[name] = needed
-				}
+	err := filepath.WalkDir(
+		dir,
+		func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
 			}
-		}
-		return nil
-	})
+
+			if d.IsDir() && strings.HasPrefix(d.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			if !slices.Contains(templateNames, d.Name()) {
+				return nil
+			}
+
+			project := filepath.Dir(path)
+			if _, err := os.Stat(filepath.Join(project, "IGNORE")); !errors.Is(err, os.ErrNotExist) {
+				return nil
+			}
+
+			needed, err := dependencies(project, d.Name())
+			if err != nil {
+				return fmt.Errorf("unable to determine dependencies of %s: %v", path, err)
+			}
+			name := filepath.Base(project)
+			templates[name] = d.Name()
+			deps[name] = needed
+			return nil
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
+	return sortProjects(templates, deps)
+}
+
+// sortProjects orders projects so that each one comes after all of its dependencies.
+func sortProjects(templates map[string]string, deps map[string][]string) ([]Project, error) {
 	var res []Project
 	satisfied := func(reqs []string) bool {
 		found := 0
@@ -89,11 +98,14 @@ func FindProjects(dir string, templateNames ...string) ([]Project, error) {
 
 		slices.Sort(batch)
 		for i := range batch {
-			res = append(res, Project{
-				Name:     batch[i],
-				Template: templates[batch[i]],
-				Needed:   deps[batch[i]],
-			})
+			res = append(
+				res,
+				Project{
+					Name:     batch[i],
+					Template: templates[batch[i]],
+					Needed:   deps[batch[i]],
+				},
+			)
 		}
 	}
 
@@ -101,9 +113,7 @@ func FindProjects(dir string, templateNames ...string) ([]Project, error) {
 }
 
 func dependencies(dir, templateName string) ([]string, error) {
-	templatePath := filepath.Join(dir, templateName)
-
-	calls, err := engine.DryRun(templatePath)
+	calls, err := engine.DryRun(filepath.Join(dir, templateName))
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +136,5 @@ func dependencies(dir, templateName string) ([]string, error) {
 		}
 	}
 
-	res := maps.Keys(dependencies)
-	slices.Sort(res)
-	return res, nil
+	return slices.Sorted(maps.Keys(dependencies)), nil
 }

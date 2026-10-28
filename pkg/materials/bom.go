@@ -41,11 +41,14 @@ func Diff(oldBom, newBom BOM) []Change {
 	var res []Change
 	for i := range newBom {
 		if oldBom[i] != newBom[i] {
-			res = append(res, Change{
-				Material: i,
-				Old:      oldBom[i],
-				New:      newBom[i],
-			})
+			res = append(
+				res,
+				Change{
+					Material: i,
+					Old:      oldBom[i],
+					New:      newBom[i],
+				},
+			)
 		}
 	}
 	return res

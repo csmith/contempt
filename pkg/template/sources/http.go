@@ -1,8 +1,8 @@
 package sources
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -19,7 +19,7 @@ func HttpSource() template.FunctionSource {
 				if err != nil {
 					return "", err
 				}
-				writer.Write(fmt.Sprintf("regexurl:%s", name), res)
+				writer("regexurl:"+name, res)
 				return res, nil
 			},
 		}
@@ -32,7 +32,12 @@ func regexURLContent(url string, regex string) (string, error) {
 		return "", err
 	}
 
-	res, err := http.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
