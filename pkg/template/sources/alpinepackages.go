@@ -2,10 +2,9 @@ package sources
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	tt "text/template"
 
+	"github.com/csmith/apkutils/v2"
 	"github.com/csmith/contempt/pkg/template"
 	"github.com/csmith/latest/v3"
 )
@@ -34,35 +33,19 @@ func latestAlpinePackages(mirror string, names ...string) (map[string]string, er
 	if err != nil {
 		return nil, err
 	}
+	return resolveAlpinePackages(packages, names...)
+}
 
-	processed := make(map[string]bool)
-	res := make(map[string]string)
-	queue := append([]string{}, names...)
-
-	for len(queue) > 0 {
-		if processed[queue[0]] {
-			// We've already got a resolution for this package, skip it.
-			queue = queue[1:]
-			continue
-		}
-
-		if strings.HasPrefix(queue[0], "!") {
-			//Package conflict, skip it
-			queue = queue[1:]
-			continue
-		}
-
-		p, ok := packages[queue[0]]
-		if !ok {
-			return nil, fmt.Errorf("package required but not found: %s", queue[0])
-		}
-
-		res[p.Name] = p.Version
-		processed[p.Name] = true
-		processed[queue[0]] = true
-		queue = append(queue[1:], p.Dependencies...)
+func resolveAlpinePackages(packages map[string]*latest.AlpinePackageInfo, names ...string) (map[string]string, error) {
+	flattened, err := apkutils.FlattenDependencies(packages, names...)
+	if err != nil {
+		return nil, err
 	}
 
+	res := make(map[string]string, len(flattened))
+	for name, p := range flattened {
+		res[name] = p.Version
+	}
 	return res, nil
 }
 
