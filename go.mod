@@ -6,7 +6,7 @@ require (
 	github.com/csmith/apkutils/v2 v2.1.2
 	github.com/csmith/envflag/v2 v2.0.0
 	github.com/csmith/latest/v3 v3.1.0
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	gopkg.in/osteele/liquid.v1 v1.2.4
 )
 
@@ -26,9 +26,9 @@ require (
 	github.com/osteele/liquid v1.7.0 // indirect
 	github.com/osteele/tuesday v1.0.3 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
